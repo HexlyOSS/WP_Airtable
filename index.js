@@ -38,9 +38,11 @@ class index {
               password: WOO_C_SECRET
             }
           })
-          this.getAirTable()
           const { data } = wooPostRes
-          console.log({wooPostRes, data})
+          const airtableRecords = await this.getAirtable('Bugs & Issues')
+          const airtablePostResult = await this.postToAirtable('Bugs & Issues')
+          const fields = airtableRecords.map(record => record.fields)
+          console.log({wooPostRes, data, airtableRecords, fields, airtablePostResult})
           res.send(data)
         } catch (error) {
           console.error(error)
@@ -52,31 +54,75 @@ class index {
     }
   }
 
-  getAirTable() {
-    let testBase = Airtable.base(AIRTABLE_BASE)
+  async getAirtable(tableName) {
+    return new Promise((resolve) => {
+      let testBase = Airtable.base(AIRTABLE_BASE)
+      let allRecords = []
 
-    testBase('Bugs & Issues').select({
-      maxRecords: 3,
-      view: "Bugs by Priority"
-    }).eachPage(function page(records, fetchNextPage) {
-        // This function (`page`) will get called for each page of records.
+      testBase(tableName).select({
+        maxRecords: 3,
+        view: "Bugs by Priority"
+      }).eachPage(function page(records, fetchNextPage) {
+          // This function (`page`) will get called for each page of records.
 
-        records.forEach(function(record) {
-          console.log('Retrieved', record.get('Name'));
-        });
+          records.forEach(function(record) {
+            allRecords.push(record)
+            console.log('Retrieved', record.get('Name'))
+          });
 
-        // To fetch the next page of records, call `fetchNextPage`.
-        // If there are more records, `page` will get called again.
-        // If there are no more records, `done` will get called.
-        fetchNextPage();
+          // To fetch the next page of records, call `fetchNextPage`.
+          // If there are more records, `page` will get called again.
+          // If there are no more records, `done` will get called.
+          fetchNextPage();
 
-      },
-      function done(err) {
-        if (err) {
-          console.error(err)
-          return
+        },
+        function done(err) {
+          console.log({err})
+          if (err) {
+            console.error(err)
+            return
+          }
+          resolve(allRecords)
         }
-    });
+      )
+    })
+  }
+
+  async postToAirtable(tableName) {
+    return new Promise(resolve => {
+      let testBase = Airtable.base(AIRTABLE_BASE)
+      let allRecords = []
+
+      testBase(tableName).create([
+      {
+        "fields": {
+          "Name": "Sending 32432 of every alert (to both text and email)",
+          "Priority": "High",
+          "Status": "Complete",
+          "Associated Features": [
+            "recA9HreJ10GSAEuF"
+          ],
+          "Created by": [
+            "recXwfNGKQdG2XASv"
+          ],
+          "Assigned to": [
+            "recpcxpoyQsYMnvri"
+          ],
+          "Bug Source": "Reported by user Kamala Davis (kamala.d123@example.com) on 11/13/16",
+          "Description": "User is receiving duplicates for each alert message, ranging from 2-5 additional messages on top of the original (and correct) alert to both email and...",
+          "Notified Users?": true
+        }
+      }],
+      (err, records) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        resolve(records.map((record) => {
+          return record.getId()
+        }))
+      })
+    })
   }
 
   listeningInit(){
