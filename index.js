@@ -1,8 +1,10 @@
 const express = require('express')
 const axios = require('axios').default
 const Airtable = require('airtable')
+var bodyParser = require('body-parser')
 require('dotenv').config()
 const app = express()
+app.use(bodyParser.json())
 const port = 3004
 const {
   WOO_C_KEY,
@@ -25,31 +27,61 @@ class index {
   }
 
   async handleRequest(req, res, msg) {
+    console.log({ reqKeys: Object.keys(req), resKeys: Object.keys(res) })
     const { url, method, } = req
     // console.log({res, url, method})
+    let responsePayload
 
     // GET Routes
     if(method === 'GET') {
-      if(url === '/orders' || url === '/customers' || url === '/products') {
-        try {
-          const wooPostRes = await axios.get(WOO_REST_URL+url, {
+      try {
+        if(url === '/woo/orders') {
+          responsePayload = await axios.get(WOO_REST_URL+'/orders', {
             auth: {
               username: WOO_C_KEY,
               password: WOO_C_SECRET
             }
           })
-          const { data } = wooPostRes
-          const airtableRecords = await this.getAirtable('Bugs & Issues')
-          const airtablePostResult = await this.postToAirtable('Bugs & Issues')
-          const fields = airtableRecords.map(record => record.fields)
-          console.log({wooPostRes, data, airtableRecords, fields, airtablePostResult})
-          res.send(data)
-        } catch (error) {
-          console.error(error)
-          res.send(error)
         }
-      } else {
-        res.status(404).send('Unknown Route')
+
+        else if(url === '/airtable/orders') {
+          airtableRecords = await this.getAirtable('Orders')
+        }
+
+        else {
+          responsePayload = 'Unknown route ' + url
+        }
+        res.send(responsePayload)
+      } catch (error) {
+        console.error(error)
+        res.send(error)
+      }
+    } 
+    
+    else if (method === 'POST'){
+      try {
+        if(url === '/orders/sync') {
+          const { body: { orderId } } = req
+          const wooGetRes = await axios.get(WOO_REST_URL + `/orders${ orderId ? `/${orderId}` : null }`, {
+            auth: {
+              username: WOO_C_KEY,
+              password: WOO_C_SECRET
+            }
+          })
+          console.log(wooGetRes)
+          const { data } = wooGetRes
+          const { id, name, metadata } = data
+          const obj = { 'order id': id, name, meta_data: metadata}
+          const airtablePostResult = await this.postToAirtable(
+            'Orders',
+            obj
+          )
+
+          res.send(airtablePostResult)
+        }
+      } catch (error) {
+        console.error(error)
+        res.send(error)
       }
     }
   }
@@ -77,7 +109,6 @@ class index {
 
         },
         function done(err) {
-          console.log({err})
           if (err) {
             console.error(err)
             return
@@ -88,39 +119,29 @@ class index {
     })
   }
 
-  async postToAirtable(tableName) {
+  async postToAirtable(tableName, payload) {
     return new Promise(resolve => {
       let testBase = Airtable.base(AIRTABLE_BASE)
-      let allRecords = []
 
-      testBase(tableName).create([
-      {
-        "fields": {
-          "Name": "Sending 32432 of every alert (to both text and email)",
-          "Priority": "High",
-          "Status": "Complete",
-          "Associated Features": [
-            "recA9HreJ10GSAEuF"
-          ],
-          "Created by": [
-            "recXwfNGKQdG2XASv"
-          ],
-          "Assigned to": [
-            "recpcxpoyQsYMnvri"
-          ],
-          "Bug Source": "Reported by user Kamala Davis (kamala.d123@example.com) on 11/13/16",
-          "Description": "User is receiving duplicates for each alert message, ranging from 2-5 additional messages on top of the original (and correct) alert to both email and...",
-          "Notified Users?": true
-        }
-      }],
+      testBase(tableName).create(
+        payload
+      ,
       (err, records) => {
         if (err) {
           console.error(err);
           return;
         }
-        resolve(records.map((record) => {
-          return record.getId()
-        }))
+        if(records) {
+          let returnVal
+          if(typeof records === 'array') {
+            returnVal = records.map((record) => {
+              return record.getId()
+            })
+          } else {
+            returnVal = records._rawJson
+          }
+          resolve(returnVal)
+        }
       })
     })
   }
