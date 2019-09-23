@@ -10,35 +10,45 @@ Airtable.configure({
   endpointUrl: AIRTABLE_ENDPOINT
 })
 
-async function AirtableGetRecord(tableName, view = '') {
-  return new Promise((resolve) => {
+async function AirtableGetRecord(tableName, view = '', orderId) {
+  return new Promise((resolve, reject) => {
     let testBase = Airtable.base(AIRTABLE_BASE)
     let allRecords = []
 
-    testBase(tableName).select({
-      view
-    }).eachPage(function page(records, fetchNextPage) {
-        // This function (`page`) will get called for each page of records.
-
-        records.forEach(function(record) {
-          allRecords.push(record)
-          console.log('Retrieved', record.get('Name'))
-        });
-
-        // To fetch the next page of records, call `fetchNextPage`.
-        // If there are more records, `page` will get called again.
-        // If there are no more records, `done` will get called.
-        fetchNextPage();
-
-      },
-      function done(err) {
-        if (err) {
+    if(orderId) {
+      testBase(tableName).find(orderId, function(err, record){
+        if(err) {
+          const { message, statusCode } = err
           console.error(err)
-          return
+          resolve({message, statusCode})
         }
-        resolve(allRecords)
-      }
-    )
+        resolve(record)
+      })
+    } else {
+      testBase(tableName).select({
+        view
+      }).eachPage(function page(records, fetchNextPage) {
+          // This function (`page`) will get called for each page of records.
+
+          records.forEach(function(record) {
+            allRecords.push(record)
+          });
+
+          // To fetch the next page of records, call `fetchNextPage`.
+          // If there are more records, `page` will get called again.
+          // If there are no more records, `done` will get called.
+          fetchNextPage();
+
+        },
+        function done(err) {
+          if (err) {
+            console.error(err)
+            return
+          }
+          resolve(allRecords)
+        }
+      )
+    }
   })
 }
 
@@ -70,7 +80,6 @@ async function AirtableCreateRecord(tableName, payload) {
 }
 
 async function AirtableUpdateRecord(tableName, payload, id) {
-  console.log({ tableName, payload, id })
   return new Promise(resolve => {
     let testBase = Airtable.base(AIRTABLE_BASE)
 
