@@ -16,6 +16,10 @@ async function wooGetOrder(orderId) {
       }
     })
 
+    const { data } = res
+    
+    console.log('findme', res.data.line_items)
+
     return res
   } catch (error) {
     const { response } = error

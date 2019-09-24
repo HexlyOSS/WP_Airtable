@@ -10,6 +10,16 @@ Airtable.configure({
   endpointUrl: AIRTABLE_ENDPOINT
 })
 
+async function getOrders(orderId){
+  const res = await AirtableGetRecord('Orders', undefined, orderId)
+
+  res
+    .filter(row => row && row.fields && typeof row.fields.line_items === 'string')
+    .forEach(row => row.fields.line_items = JSON.parse(row.fields.line_items) )
+  console.log('res', typeof res[0].fields.line_items)
+  return res
+}
+
 async function AirtableGetRecord(tableName, view = '', orderId) {
   return new Promise((resolve, reject) => {
     let testBase = Airtable.base(AIRTABLE_BASE)
@@ -110,6 +120,7 @@ async function AirtableUpdateRecord(tableName, payload, id) {
 }
 
 module.exports = {
+  getOrders,
   AirtableCreateRecord,
   AirtableGetRecord,
   AirtableUpdateRecord
