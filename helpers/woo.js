@@ -18,7 +18,7 @@ async function wooGetOrder(orderId) {
 
     const { data } = res
     
-    console.log('findme', res.data.line_items)
+    console.log('findme', res.data.line_items, {res})
 
     return res
   } catch (error) {
@@ -32,10 +32,12 @@ async function wooGetOrderHandler (event) {
   const wooGetRes = await wooGetOrder(event.pathParameters.orderId)
   if(wooGetRes) {
     const { data } = wooGetRes
+    console.log({data})
     return data
+  } else {
+    return null
   }
 
-  return null
 }
 
 function getMatchingRecords(AirtableGetRecordRes, orderId) {

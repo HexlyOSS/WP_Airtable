@@ -11,12 +11,6 @@ const { getMatchingRecords, wooGetOrder } = require('./woo')
 const getAirtableOrders = async event => {
   const { pathParameters: { orderId } } = event
   const res = await airtable.getOrders(orderId)
-
-  // const res = await AirtableGetRecord('Orders', undefined, orderId)
-  // res
-  // .filter(row => row && row.fields && typeof row.fields.line_items === 'string')
-  // .forEach(row => row.fields.line_items = JSON.parse(row.fields.line_items) )
-  // console.log('res', typeof res[0].fields.line_items)
   
   return res
 }

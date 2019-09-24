@@ -7,10 +7,10 @@ const statusCoder = {
       dStatusCode = data.status
     }
 
-    if(!dStatusCode && !statusCode) {
+    if(!dStatusCode && !statusCode && data) {
       dStatusCode = response.status
     }
-
+    console.log({handler, dStatusCode, statusCode})
     if( handler.response && typeof(handler.response) === 'object'){
       handler.response = {
         statusCode: statusCode ? statusCode : (dStatusCode ? dStatusCode :200),
