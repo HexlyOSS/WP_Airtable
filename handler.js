@@ -1,18 +1,25 @@
-// 'use strict';
+const middy = require('middy')
+const { httpEventNormalizer } = require('middy/middlewares')
+require('dotenv').config()
+const {
+  getAirtableOrders,
+  syncOrders
+} = require('./helpers/airtableHelpers')
 
-// module.exports.hello = async event => {
-//   return {
-//     statusCode: 200,
-//     body: JSON.stringify(
-//       {
-//         message: 'Go Serverless v1.0! Your function executed successfully!',
-//         input: event,
-//       },
-//       null,
-//       2
-//     ),
-//   };
+const { wooGetOrderHandler } = require('./helpers/woo')
 
-//   // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-//   // return { message: 'Go Serverless v1.0! Your function executed successfully!', event };
-// };
+const { statusCoder } = require('./middleware/statuscoder')
+
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+
+const middyHandler = fn => {
+  return middy(fn)
+    .use(httpEventNormalizer())
+    .use(statusCoder)
+}
+
+module.exports = {
+  syncOrders: middyHandler(syncOrders),
+  getAirtableOrders: middyHandler(getAirtableOrders),
+  wooGetOrder: middyHandler(wooGetOrderHandler)
+}

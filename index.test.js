@@ -1,2 +1,2 @@
-const i = require('./index')
+const i = require('./handler')
 const index = new i()
