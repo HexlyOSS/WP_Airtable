@@ -109,4 +109,8 @@ async function AirtableUpdateRecord(tableName, payload, id) {
   })
 }
 
-module.exports = { AirtableCreateRecord, AirtableGetRecord, AirtableUpdateRecord }
+module.exports = {
+  AirtableCreateRecord,
+  AirtableGetRecord,
+  AirtableUpdateRecord
+}
