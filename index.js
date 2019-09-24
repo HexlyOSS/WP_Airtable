@@ -122,7 +122,7 @@ const main = async event => {
 
 const getAirtableOrders = async event => {
   const { pathParameters: { orderId } } = event
-  const res = await AirtableGetRecord('Orders', null, orderId)
+  const res = await AirtableGetRecord('Orders', undefined, orderId)
   return res
   // Use this code if you don't use the http event with the LAMBDA-PROXY integration
   // return { message: 'Go Serverless v1.0! Your function executed successfully!', event };

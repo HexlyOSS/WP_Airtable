@@ -77,7 +77,7 @@ functions:
             parameters:
               paths:
                 orderId: false
-  getAirtableOrders:
+  getAirtableOrdersId:
     handler: index.getAirtableOrders
     events:
       - http:
@@ -87,6 +87,12 @@ functions:
             parameters:
               paths:
                 orderId: false
+  getAirtableOrders:
+    handler: index.getAirtableOrders
+    events:
+      - http:
+          path: /getAirtableOrders/
+          method: get
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
