@@ -1,12 +1,11 @@
-require('dotenv').config()
 const axios = require('axios').default
-const {
-  WOO_C_KEY,
-  WOO_C_SECRET,
-  WOO_REST_URL
-} = process.env
 
 async function wooGetOrder(orderId) {
+  const {
+    WOO_C_KEY,
+    WOO_C_SECRET,
+    WOO_REST_URL
+  } = process.env
   try {
     const url = WOO_REST_URL + '/orders' + (orderId ? `/${orderId}` : '')
     const res = await axios.get(url, {
@@ -29,6 +28,7 @@ async function wooGetOrder(orderId) {
 }
 
 async function wooGetOrderHandler (event) {
+  console.log({procEnv: process.env})
   const wooGetRes = await wooGetOrder(event.pathParameters.orderId)
   if(wooGetRes) {
     const { data } = wooGetRes

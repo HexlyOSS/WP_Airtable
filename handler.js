@@ -1,6 +1,5 @@
 const middy = require('middy')
-const { httpEventNormalizer } = require('middy/middlewares')
-require('dotenv').config()
+const { httpEventNormalizer, ssm } = require('middy/middlewares')
 const {
   getAirtableOrders,
   syncOrders
@@ -14,8 +13,19 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
 
 const middyHandler = fn => {
   return middy(fn)
-    .use(httpEventNormalizer())
     .use(statusCoder)
+    .use(ssm({
+      cache: true,
+      names: {
+        WOO_C_KEY: 'WOO_C_KEY',
+        WOO_C_SECRET: 'WOO_C_SECRET',
+        WOO_REST_URL: 'WOO_REST_URL',
+        AIRTABLE_API_KEY: 'AIRTABLE_API_KEY',
+        AIRTABLE_ENDPOINT: 'AIRTABLE_ENDPOINT',
+        AIRTABLE_BASE: 'AIRTABLE_BASE'
+      }
+    }))
+    .use(httpEventNormalizer())
 }
 
 module.exports = {

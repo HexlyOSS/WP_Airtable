@@ -1,7 +1,8 @@
 const statusCoder = {
   after: (handler, next) => {
     const { response } = handler
-    const { response: {statusCode, data} } = handler
+    console.log({response})
+    const {statusCode, data} = response ? response : {statusCode: 500, data: []}
     let dStatusCode
     if(!statusCode && data) {
       dStatusCode = data.status

@@ -12,6 +12,7 @@
 # Happy Coding!
 
 plugins:
+  - serverless-offline-ssm
   - serverless-offline
 
 service: localsites
