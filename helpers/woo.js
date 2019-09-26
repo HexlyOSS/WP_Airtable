@@ -15,10 +15,6 @@ async function wooGetOrder(orderId) {
       }
     })
 
-    const { data } = res
-    
-    console.log('findme', res.data.line_items, {res})
-
     return res
   } catch (error) {
     const { response } = error
@@ -28,11 +24,9 @@ async function wooGetOrder(orderId) {
 }
 
 async function wooGetOrderHandler (event) {
-  console.log({procEnv: process.env})
   const wooGetRes = await wooGetOrder(event.pathParameters.orderId)
   if(wooGetRes) {
     const { data } = wooGetRes
-    console.log({data})
     return data
   } else {
     return null

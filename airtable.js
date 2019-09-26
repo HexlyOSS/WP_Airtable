@@ -2,12 +2,10 @@ const Airtable = require('airtable')
 
 async function getOrders(orderId){
   const res = await AirtableGetRecord('Orders', undefined, orderId)
-  console.log({res, orderId, typeofRes: typeof res})
   if(res.length) {
     res
       .filter(row => row && row.fields && typeof row.fields.line_items === 'string')
       .forEach(row => row.fields.line_items = JSON.parse(row.fields.line_items) )
-    console.log('res', typeof res[0].fields.line_items)
   } else {
     res.fields.line_items = JSON.parse(res.fields.line_items)
   }
@@ -27,12 +25,6 @@ async function AirtableGetRecord(tableName, view = '', orderId) {
   return new Promise((resolve, reject) => {
     let testBase = Airtable.base(AIRTABLE_BASE)
     let allRecords = []
-
-    console.log({
-      AIRTABLE_API_KEY,
-      AIRTABLE_ENDPOINT,
-      AIRTABLE_BASE
-    })
 
     if(orderId) {
       testBase(tableName).find(orderId, function(err, record){

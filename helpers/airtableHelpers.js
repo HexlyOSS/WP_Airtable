@@ -11,7 +11,6 @@ const { getMatchingRecords, wooGetOrder } = require('./woo')
 const getAirtableOrders = async event => {
   const { pathParameters: { orderId } } = event
   const res = await airtable.getOrders(orderId)
-  console.log({res, orderId})
   
   return res
 }
@@ -26,10 +25,8 @@ async function syncOrdersHandler(orderId) {
   try {
     const wooGetOrderRes = await wooGetOrder(orderId)
     if(!wooGetOrderRes) {
-      console.log({procEnv: process.env})
       return new Error('Res was undefined')
     }
-    console.log({wooGetOrderRes})
     const { data: {
       id,
       billing,
