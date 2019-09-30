@@ -6,7 +6,7 @@ const {
 
 const airtable = require('../airtable')
 
-const { getMatchingRecords, wooGetOrder } = require('./woo')
+const { getMatchingRecords, getWooOrders } = require('./woo')
 
 const getAirtableOrders = async event => {
   const { pathParameters: { orderId } } = event
@@ -23,8 +23,8 @@ const syncOrders = async event => {
 
 async function syncOrdersHandler(orderId) {
   try {
-    const wooGetOrderRes = await wooGetOrder(orderId)
-    if(!wooGetOrderRes) {
+    const getWooOrdersRes = await getWooOrders(orderId)
+    if(!getWooOrdersRes) {
       return new Error('Res was undefined')
     }
     const { data: {
@@ -36,9 +36,9 @@ async function syncOrdersHandler(orderId) {
       date_created,
       total,
       currency
-    } } = wooGetOrderRes
+    } } = getWooOrdersRes
     if(!billing) {
-      return wooGetOrderRes
+      return getWooOrdersRes
     }
     const { first_name, last_name, email } = billing
     const name = `${first_name} ${last_name}`

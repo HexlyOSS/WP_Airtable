@@ -1,6 +1,6 @@
 const axios = require('axios').default
 
-async function wooGetOrder(orderId) {
+async function getWooOrders(orderId) {
   const {
     WOO_C_KEY,
     WOO_C_SECRET,
@@ -14,17 +14,16 @@ async function wooGetOrder(orderId) {
         password: WOO_C_SECRET
       }
     })
-
     return res
   } catch (error) {
     const { response } = error
-    console.error({ response })
+    console.error(error)
     return response
   }
 }
 
-async function wooGetOrderHandler (event) {
-  const wooGetRes = await wooGetOrder(event.pathParameters.orderId)
+async function getWooOrdersHandler (event) {
+  const wooGetRes = await getWooOrders(event.pathParameters.orderId)
   if(wooGetRes) {
     const { data } = wooGetRes
     return data
@@ -50,7 +49,7 @@ function getMatchingRecords(AirtableGetRecordRes, orderId) {
 }
 
 module.exports = {
-  wooGetOrder,
-  wooGetOrderHandler,
+  getWooOrders,
+  getWooOrdersHandler,
   getMatchingRecords
 }

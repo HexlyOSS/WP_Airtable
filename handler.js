@@ -5,7 +5,7 @@ const {
   syncOrders
 } = require('./helpers/airtableHelpers')
 
-const { wooGetOrderHandler } = require('./helpers/woo')
+const { getWooOrdersHandler } = require('./helpers/woo')
 
 const { statusCoder } = require('./middleware/statuscoder')
 
@@ -31,5 +31,5 @@ const middyHandler = fn => {
 module.exports = {
   syncOrders: middyHandler(syncOrders),
   getAirtableOrders: middyHandler(getAirtableOrders),
-  wooGetOrder: middyHandler(wooGetOrderHandler)
+  getWooOrders: middyHandler(getWooOrdersHandler)
 }

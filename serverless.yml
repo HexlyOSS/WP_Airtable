@@ -92,10 +92,10 @@ functions:
           method: get
 
   getWooOrdersId:
-    handler: handler.wooGetOrder
+    handler: handler.getWooOrders
     events:
       - http:
-          path: /wooGetOrder/{orderId}
+          path: /getWooOrders/{orderId}
           method: get
           request:
             parameters:
@@ -103,8 +103,8 @@ functions:
                 orderId: false
 
   getWooOrders:
-    handler: handler.wooGetOrder
+    handler: handler.getWooOrders
     events:
       - http:
-          path: /wooGetOrder/
+          path: /getWooOrders/
           method: get
