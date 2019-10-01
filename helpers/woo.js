@@ -7,13 +7,15 @@ async function getWooOrders(orderId) {
     WOO_REST_URL
   } = process.env
   try {
-    const url = WOO_REST_URL + '/orders' + (orderId ? `/${orderId}` : '')
+    const url = WOO_REST_URL + '/orders' + (orderId ? `/${orderId}` : '') + '?per_page=100'
     const res = await axios.get(url, {
       auth: {
         username: WOO_C_KEY,
         password: WOO_C_SECRET
       }
     })
+    const { data } = res
+
     return res
   } catch (error) {
     const { response } = error

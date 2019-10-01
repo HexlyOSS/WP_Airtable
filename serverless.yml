@@ -62,7 +62,7 @@ provider:
 #    - exclude-me-dir/**
 
 functions:
-  syncOrders:
+  syncOrdersById:
     handler: handler.syncOrders
     events:
       - http:
@@ -72,6 +72,13 @@ functions:
             parameters:
               paths:
                 orderId: false
+
+  syncOrders:
+    handler: handler.syncOrders
+    events:
+      - http:
+          path: /syncOrders/
+          method: get
 
   getAirtableOrdersId:
     handler: handler.getAirtableOrders

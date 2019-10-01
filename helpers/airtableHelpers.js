@@ -23,43 +23,55 @@ const syncOrders = async event => {
 
 async function syncOrdersHandler(orderId) {
   try {
+    let airtablePostResult = []
+
     const getWooOrdersRes = await getWooOrders(orderId)
+    let { data } = getWooOrdersRes
     if(!getWooOrdersRes) {
       return new Error('Res was undefined')
     }
-    const { data: {
-      id,
-      billing,
-      metadata, 
-      line_items,
-      status,
-      date_created,
-      total,
-      currency
-    } } = getWooOrdersRes
-    if(!billing) {
-      return getWooOrdersRes
+
+    if(!data.length) {
+      data = [data]
     }
-    const { first_name, last_name, email } = billing
-    const name = `${first_name} ${last_name}`
 
-    const AirtableGetRecordRes = await AirtableGetRecord('Orders')
+    for (const order of data) {
+      const {
+        id,
+        billing,
+        metadata, 
+        line_items,
+        status,
+        date_created,
+        total,
+        currency
+      } = order
+      if(!billing) {
+        return getWooOrdersRes
+      }
+      const { first_name, last_name, email } = billing
+      const name = `${first_name} ${last_name}`
 
-    const { airtableId, airtableNumberOfMatches } = getMatchingRecords(AirtableGetRecordRes, orderId)
-    
-    let airtablePostResult = mergeRecords(
-      id,
-      name,
-      metadata,
-      line_items,
-      email,
-      status,
-      date_created,
-      total,
-      currency,
-      airtableNumberOfMatches,
-      airtableId
-    )
+      const AirtableGetRecordRes = await AirtableGetRecord('Orders')
+
+      const { airtableId, airtableNumberOfMatches } = getMatchingRecords(AirtableGetRecordRes, id)
+      
+      const mRes = await mergeRecords(
+          id,
+          name,
+          metadata,
+          line_items,
+          email,
+          status,
+          date_created,
+          total,
+          currency,
+          airtableNumberOfMatches,
+          airtableId
+      )
+
+      airtablePostResult.push(mRes)
+    }
 
     return airtablePostResult
   } catch (error) {
