@@ -26,6 +26,7 @@ service: localsites
 
 provider:
   name: aws
+  stage: localhost
   runtime: nodejs10.x
 
 # you can overwrite defaults here
@@ -48,10 +49,6 @@ provider:
 #            - "Ref" : "ServerlessDeploymentBucket"
 #            - "/*"
 
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
-
 # you can add packaging information here
 #package:
 #  include:
@@ -61,8 +58,13 @@ provider:
 #    - exclude-me.js
 #    - exclude-me-dir/**
 
+custom:
+  environment: ${file(env.yml):${self:custom.stage}}
+  stage: '${opt:stage, self:provider.stage}'
+
 functions:
   syncOrdersById:
+    environment: ${self:custom.environment}
     handler: handler.syncOrders
     events:
       - http:
@@ -74,6 +76,7 @@ functions:
                 orderId: false
 
   syncOrders:
+    environment: ${self:custom.environment}
     handler: handler.syncOrders
     events:
       - http:
@@ -81,6 +84,7 @@ functions:
           method: get
 
   getAirtableOrdersId:
+    environment: ${self:custom.environment}
     handler: handler.getAirtableOrders
     events:
       - http:
@@ -92,6 +96,7 @@ functions:
                 orderId: false
 
   getAirtableOrders:
+    environment: ${self:custom.environment}
     handler: handler.getAirtableOrders
     events:
       - http:
@@ -99,6 +104,7 @@ functions:
           method: get
 
   getWooOrdersId:
+    environment: ${self:custom.environment}
     handler: handler.getWooOrders
     events:
       - http:
@@ -110,6 +116,7 @@ functions:
                 orderId: false
 
   getWooOrders:
+    environment: ${self:custom.environment}
     handler: handler.getWooOrders
     events:
       - http:
@@ -117,6 +124,7 @@ functions:
           method: get
 
   getIntegrations:
+    environment: ${self:custom.environment}
     handler: handler.getIntegrations
     events:
       - http:
