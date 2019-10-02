@@ -12,18 +12,17 @@ async function getOrders(orderId){
   return res
 }
 
-async function AirtableGetRecord(tableName, view = '', orderId) {
+async function AirtableGetRecord(baseId = process.env.AIRTABLE_BASE, tableName, view = '', orderId) {
   const {
     AIRTABLE_API_KEY,
-    AIRTABLE_ENDPOINT,
-    AIRTABLE_BASE
+    AIRTABLE_ENDPOINT
   } = process.env
   Airtable.configure({
     api: AIRTABLE_API_KEY,
     endpointUrl: AIRTABLE_ENDPOINT
   })
   return new Promise((resolve, reject) => {
-    let testBase = Airtable.base(AIRTABLE_BASE)
+    let testBase = Airtable.base(baseId)
     let allRecords = []
 
     if(orderId) {

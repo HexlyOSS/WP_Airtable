@@ -115,3 +115,10 @@ functions:
       - http:
           path: /getWooOrders/
           method: get
+
+  getIntegrations:
+    handler: handler.getIntegrations
+    events:
+      - http:
+          path: /getIntegrations/
+          method: get
