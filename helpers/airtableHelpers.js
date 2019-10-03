@@ -24,7 +24,7 @@ const syncOrders = async event => {
 }
 
 async function syncOrdersHandler(orderId) {
-  // try {
+  console.log({orderId})
   let airtablePostResult = []
 
   const getWooOrdersRes = await getWooOrders(orderId)
@@ -37,7 +37,7 @@ async function syncOrdersHandler(orderId) {
     data = [data]
   }
 
-  for (const order of data) {
+  if(orderId) {
     const {
       id,
       billing,
@@ -47,14 +47,13 @@ async function syncOrdersHandler(orderId) {
       date_created,
       total,
       currency
-    } = order
+    } = data[0]
     if (!billing) {
       return getWooOrdersRes
     }
     const { first_name, last_name, email } = billing
     const name = `${first_name} ${last_name}`
-
-    const AirtableGetRecordRes = await AirtableGetRecord('Orders')
+    const AirtableGetRecordRes = await AirtableGetRecord(undefined, 'Orders', undefined, { wooId: orderId })
 
     const { airtableId, airtableNumberOfMatches } = getMatchingRecords(
       AirtableGetRecordRes,
@@ -76,6 +75,47 @@ async function syncOrdersHandler(orderId) {
     )
 
     airtablePostResult.push(mRes)
+  } else {
+    const AirtableGetRecordRes = await AirtableGetRecord(undefined, 'Orders')
+    console.log({ AirtableGetRecordRes })
+    for (const order of data) {
+      const {
+        id,
+        billing,
+        metadata,
+        line_items,
+        status,
+        date_created,
+        total,
+        currency
+      } = order
+      if (!billing) {
+        return getWooOrdersRes
+      }
+      const { first_name, last_name, email } = billing
+      const name = `${first_name} ${last_name}`
+
+      const { airtableId, airtableNumberOfMatches } = getMatchingRecords(
+        AirtableGetRecordRes,
+        id
+      )
+
+      const mRes = await mergeRecords(
+        id,
+        name,
+        metadata,
+        line_items,
+        email,
+        status,
+        date_created,
+        total,
+        currency,
+        airtableNumberOfMatches,
+        airtableId
+      )
+
+      airtablePostResult.push(mRes)
+    }
   }
 
   return airtablePostResult
@@ -112,10 +152,24 @@ async function mergeRecords(
     total,
     currency
   }
-
+  console.log({
+    id,
+    name,
+    metadata,
+    line_items,
+    email,
+    status,
+    date_created,
+    total,
+    currency,
+    airtableNumberOfMatches,
+    airtableId
+  })
   if (airtableNumberOfMatches === 0) {
+    console.log('Creating new record')
     airtablePostResult = await AirtableCreateRecord('Orders', obj)
   } else if (airtableNumberOfMatches === 1) {
+    console.log('Updating record')
     airtablePostResult = await AirtableUpdateRecord('Orders', obj, airtableId)
   } else {
     throw new Error('More than one record found!')

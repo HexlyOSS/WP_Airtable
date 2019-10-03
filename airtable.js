@@ -1,7 +1,7 @@
 const Airtable = require('airtable')
 
 async function getOrders(orderId){
-  const res = await AirtableGetRecord('Orders', undefined, orderId)
+  const res = await AirtableGetRecord('Orders', undefined, { orderId })
   if(res.length) {
     res
       .filter(row => row && row.fields && typeof row.fields.line_items === 'string')
@@ -12,14 +12,16 @@ async function getOrders(orderId){
   return res
 }
 
-async function AirtableGetRecord(baseId = process.env.AIRTABLE_BASE, tableName, view = '', orderId) {
+async function AirtableGetRecord(baseId = process.env.SSM_AIRTABLE_BASE, tableName, view = '', selectCriteria = {}) {
+  const { orderId, wooId } = selectCriteria
+  console.log({baseId, tableName, view, orderId, wooId})
   const {
-    AIRTABLE_API_KEY,
-    AIRTABLE_ENDPOINT
+    SSM_AIRTABLE_API_KEY,
+    SSM_AIRTABLE_ENDPOINT
   } = process.env
   Airtable.configure({
-    api: AIRTABLE_API_KEY,
-    endpointUrl: AIRTABLE_ENDPOINT
+    apiKey: SSM_AIRTABLE_API_KEY,
+    endpointUrl: SSM_AIRTABLE_ENDPOINT
   })
   return new Promise((resolve, reject) => {
     let testBase = Airtable.base(baseId)
@@ -41,7 +43,15 @@ async function AirtableGetRecord(baseId = process.env.AIRTABLE_BASE, tableName, 
           // This function (`page`) will get called for each page of records.
 
           records.forEach(function(record) {
-            allRecords.push(record)
+            if(wooId) {
+              const { fields: { wooOrderId }} = record
+
+              if(wooOrderId == wooId) {
+                allRecords.push(record)
+              }
+            } else {
+              allRecords.push(record)
+            }
           });
 
           // To fetch the next page of records, call `fetchNextPage`.
@@ -64,16 +74,16 @@ async function AirtableGetRecord(baseId = process.env.AIRTABLE_BASE, tableName, 
 
 async function AirtableCreateRecord(tableName, payload) {
   const {
-    AIRTABLE_API_KEY,
-    AIRTABLE_ENDPOINT,
-    AIRTABLE_BASE
+    SSM_AIRTABLE_API_KEY,
+    SSM_AIRTABLE_ENDPOINT,
+    SSM_AIRTABLE_BASE
   } = process.env
   Airtable.configure({
-    api: AIRTABLE_API_KEY,
-    endpointUrl: AIRTABLE_ENDPOINT
+    apiKey: SSM_AIRTABLE_API_KEY,
+    endpointUrl: SSM_AIRTABLE_ENDPOINT
   })
   return new Promise(resolve => {
-    let testBase = Airtable.base(AIRTABLE_BASE)
+    let testBase = Airtable.base(SSM_AIRTABLE_BASE)
 
     testBase(tableName).create(
       payload
@@ -100,16 +110,16 @@ async function AirtableCreateRecord(tableName, payload) {
 
 async function AirtableUpdateRecord(tableName, payload, id) {
   const {
-    AIRTABLE_API_KEY,
-    AIRTABLE_ENDPOINT,
-    AIRTABLE_BASE
+    SSM_AIRTABLE_API_KEY,
+    SSM_AIRTABLE_ENDPOINT,
+    SSM_AIRTABLE_BASE
   } = process.env
   Airtable.configure({
-    api: AIRTABLE_API_KEY,
-    endpointUrl: AIRTABLE_ENDPOINT
+    apiKey: SSM_AIRTABLE_API_KEY,
+    endpointUrl: SSM_AIRTABLE_ENDPOINT
   })
   return new Promise(resolve => {
-    let testBase = Airtable.base(AIRTABLE_BASE)
+    let testBase = Airtable.base(SSM_AIRTABLE_BASE)
 
     testBase(tableName).update([{
       id,

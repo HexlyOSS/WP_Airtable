@@ -1,17 +1,17 @@
 const axios = require('axios').default
 
 async function getWooOrders(orderId) {
-  const { WOO_C_KEY, WOO_C_SECRET, WOO_REST_URL } = process.env
+  const { SSM_WOO_C_KEY, SSM_WOO_C_SECRET, SSM_WOO_REST_URL } = process.env
   try {
     const url =
-      WOO_REST_URL +
+      SSM_WOO_REST_URL +
       '/orders' +
       (orderId ? `/${orderId}` : '') +
       '?per_page=100'
     const res = await axios.get(url, {
       auth: {
-        username: WOO_C_KEY,
-        password: WOO_C_SECRET
+        username: SSM_WOO_C_KEY,
+        password: SSM_WOO_C_SECRET
       }
     })
     const { data } = res
