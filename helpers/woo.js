@@ -1,5 +1,6 @@
 const axios = require('axios').default
 
+// Always returns an array (may be empty) or throws
 async function getWooOrders(orderId) {
   const { SSM_WOO_C_KEY, SSM_WOO_C_SECRET, SSM_WOO_REST_URL } = process.env
   try {
@@ -14,9 +15,12 @@ async function getWooOrders(orderId) {
         password: SSM_WOO_C_SECRET
       }
     })
-    const { data } = res
 
-    return res
+    // what do we throw if data is not an array or something sane?
+    if( !res || !Array.isArray(res.data) ){
+      throw new Error('Dunno what to do here')
+    }
+    return res.data
   } catch (error) {
     // console.error('Failed hitting Woo', error)
     const e = new Error('Failed to connect to Woo')
@@ -28,8 +32,7 @@ async function getWooOrders(orderId) {
 async function getWooOrdersHandler(event) {
   const wooGetRes = await getWooOrders(event.pathParameters.orderId)
   if (wooGetRes) {
-    const { data } = wooGetRes
-    return data
+    return wooGetRes
   } else {
     return null
   }

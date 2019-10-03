@@ -12,6 +12,48 @@ async function getOrders(orderId){
   return res
 }
 
+
+const BaseWrapper = base => ({
+  find: (orderId) => new Promise( (resolve, reject) => {
+    base.find( orderId, (err, record) => !!error ? reject(err) : resolve(record) )
+  }),
+  findAllPaged: (view, wooId) => new Promise( async (resolve, reject) => {
+    const result = []
+        // called for each page
+    const pager = (records, fetchNextPage) => {      
+      records.forEach(function(record) {
+        if(wooId) {
+          const { fields: { wooOrderId }} = record
+
+          if(wooOrderId == wooId) {
+            results.push(record)
+          }
+        } else {
+          results.push(record)
+        }
+      });
+
+      // To fetch the next page of records, call `fetchNextPage`.
+      // If there are more records, `page` will get called again.
+      // If there are no more records, `done` will get called.
+      fetchNextPage();
+    }
+
+    const done = err => {
+      if( err ) {
+        const e = new Error('Failed on paging order: ' + e.message)
+        e.cause = err 
+        reject(err)
+      }else{
+        resolve(result)
+      }
+    }
+    
+    base.select({view}).eachPage(pager, done)
+  } )
+})
+
+
 async function AirtableGetRecord(baseId = process.env.SSM_AIRTABLE_BASE, tableName, view = '', selectCriteria = {}) {
   const { orderId, wooId } = selectCriteria
   console.log({baseId, tableName, view, orderId, wooId})
@@ -23,10 +65,34 @@ async function AirtableGetRecord(baseId = process.env.SSM_AIRTABLE_BASE, tableNa
     apiKey: SSM_AIRTABLE_API_KEY,
     endpointUrl: SSM_AIRTABLE_ENDPOINT
   })
-  return new Promise((resolve, reject) => {
-    let testBase = Airtable.base(baseId)
-    let allRecords = []
 
+  let testBase = Airtable.base(baseId)
+  const wrap = BaseWrapper(testBase(tableName))
+
+  try {
+    let result = []
+    if( orderId ){
+      const record = await wrap.find(orderId)
+      record && result.push(record)
+    } else {
+      result = await wrap.findAllPaged(view)
+    }
+    return result
+  }catch(err){
+    if( err.statusCode === 404 ){
+      // should we blow up? Nope, return null
+      return null
+    }
+    const e = new Error(`Could not find Airtable records with parameter of orderId=${orderId}; Error: ${err.message}`)
+    e.cause = err
+    throw e
+  }
+
+
+
+
+  return new Promise((resolve, reject) => {
+    
     if(orderId) {
       testBase(tableName).find(orderId, function(err, record){
         if(err) {
