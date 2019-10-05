@@ -33,7 +33,7 @@ async function syncOrdersHandler(orderId) {
   const orders = await getWooOrders(orderId)
 
   if( orders.length < 1 ){
-    console.warn('No action to take, as Woo provided no orders', $orderId)
+    console.warn('No action to take, as Woo provided no orders', orderId)
   }else if(orderId) {
     // const {
     //   id,
@@ -52,12 +52,12 @@ async function syncOrdersHandler(orderId) {
     // const { first_name, last_name, email } = billing
     // const name = `${first_name} ${last_name}`    
     
-    const records = await AirtableGetRecord(undefined, 'Orders', undefined, { wooId: order.id })
+    const records = await AirtableGetRecord(undefined, 'Orders', undefined, { wooId: orderId })
     
     // do we quit if empty?
     
 
-    await mergeOrders(orders, records)
+    const mRes = await mergeOrders(orders, records)
 
     
     // const { airtableId, airtableNumberOfMatches } = getMatchingRecords(
@@ -67,19 +67,19 @@ async function syncOrdersHandler(orderId) {
 
 
 
-    const mRes = await mergeRecords(
-      id,
-      name,
-      metadata,
-      line_items,
-      email,
-      status,
-      date_created,
-      total,
-      currency,
-      airtableNumberOfMatches,
-      airtableId
-    )
+    // const mRes = await mergeRecords(
+    //   orderId,
+    //   name,
+    //   metadata,
+    //   line_items,
+    //   email,
+    //   status,
+    //   date_created,
+    //   total,
+    //   currency,
+    //   airtableNumberOfMatches,
+    //   airtableId
+    // )
 
     airtablePostResult.push(mRes)
   } else {
@@ -137,6 +137,7 @@ async function syncOrdersHandler(orderId) {
 
 
 function parseOrderToRecord(order){
+  console.log({ order })
   const { 
     id: wooOrderId, 
     billing = {},
@@ -168,7 +169,7 @@ function parseOrderToRecord(order){
 }
 
 async function mergeOrders(orders, records) {
-
+  console.log({ function: 'mergeOrders()', orders, records })
 
     
   // find counts of orders
@@ -189,19 +190,23 @@ async function mergeOrders(orders, records) {
     throw new Error('Found duplicate records in AirTable')
   }
 
-  const promises = orders.map( order => {
+  const promises = orders.map( async order => {
     const data = parseOrderToRecord(order)
     let [record] = mapping[order.id]
+
+    // console.log({ data, record })
+
     let result
     if( record ){
-      result = AirtableUpdateRecord('Orders', { ...record.fields, ...data }, record.id)
+      result = await AirtableUpdateRecord('Orders', { ...record.fields, ...data }, record.id)
     }else{
-      result = AirtableCreateRecord('Orders', obj)
+      result = await AirtableCreateRecord('Orders', obj)
     }
+    // console.log({result})
     return result
   })
   const results = Promise.all(promises)
-
+  
   // iterate results, figure out who failed and who succeeded
 
   return {

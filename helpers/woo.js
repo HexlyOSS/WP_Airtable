@@ -16,13 +16,19 @@ async function getWooOrders(orderId) {
       }
     })
 
+    // console.log({ res })
     // what do we throw if data is not an array or something sane?
     if( !res || !Array.isArray(res.data) ){
-      throw new Error('Dunno what to do here')
+      const { data } = res
+      
+      if(!data) {
+        throw new Error('Dunno what to do here')
+      } else {
+        res.data = [data]
+      }
     }
     return res.data
   } catch (error) {
-    // console.error('Failed hitting Woo', error)
     const e = new Error('Failed to connect to Woo')
     e.cause = error
     throw e

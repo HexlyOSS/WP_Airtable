@@ -26,10 +26,10 @@ const BaseWrapper = base => ({
           const { fields: { wooOrderId }} = record
 
           if(wooOrderId == wooId) {
-            results.push(record)
+            result.push(record)
           }
         } else {
-          results.push(record)
+          result.push(record)
         }
       });
 
@@ -139,6 +139,7 @@ async function AirtableGetRecord(baseId = process.env.SSM_AIRTABLE_BASE, tableNa
 }
 
 async function AirtableCreateRecord(tableName, payload) {
+  // console.log({ tableName, payload })
   const {
     SSM_AIRTABLE_API_KEY,
     SSM_AIRTABLE_ENDPOINT,
@@ -175,6 +176,7 @@ async function AirtableCreateRecord(tableName, payload) {
 }
 
 async function AirtableUpdateRecord(tableName, payload, id) {
+  // console.log({ tableName, payload, id })
   const {
     SSM_AIRTABLE_API_KEY,
     SSM_AIRTABLE_ENDPOINT,
