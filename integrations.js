@@ -4,7 +4,7 @@ const { AirtableGetRecord } = require('./airtable')
 async function getSinkSsmName(name = 'woocommerce') {
   const res = await AirtableGetRecord('app0JJbDgZLggdMWB', 'Integrations', undefined, undefined)
 
-  console.log({ res })
+  // console.log({ res })
 }
 
 async function getSourceSsmName() {

@@ -37,7 +37,7 @@ if (process.env.SKIP_SSM === 'true') {
   ssmMiddleware = ssm(ssmOptions)
 }
 
-console.log('Skip SSM?', process.env.SKIP_SSM)
+// console.log('Skip SSM?', process.env.SKIP_SSM)
 
 const middyHandler = fn => {
   return middy(fn)

@@ -56,7 +56,7 @@ const BaseWrapper = base => ({
 
 async function AirtableGetRecord(baseId = process.env.SSM_AIRTABLE_BASE, tableName, view = '', selectCriteria = {}) {
   const { orderId, wooId } = selectCriteria
-  console.log({baseId, tableName, view, orderId, wooId})
+  // console.log({baseId, tableName, view, orderId, wooId})
   const {
     SSM_AIRTABLE_API_KEY,
     SSM_AIRTABLE_ENDPOINT
