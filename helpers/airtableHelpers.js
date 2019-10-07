@@ -4,6 +4,8 @@ const {
   AirtableUpdateRecord
 } = require('../airtable')
 
+var allSettled = require('promise.allsettled')
+
 const airtable = require('../airtable')
 
 const { getMatchingRecords, getWooOrders } = require('./woo')
@@ -50,7 +52,6 @@ async function syncOrdersHandler(orderId) {
 
   return airtablePostResult
 }
-
 
 function parseOrderToRecord(order){
   // console.log({ order })
@@ -122,13 +123,25 @@ async function mergeOrders(orders, records) {
     }
     return result
   })
-  const results = await Promise.all(promises)
+  const testFailPromise = new Promise((res, rej) => rej('test rejection'))
+
+  promises.push(testFailPromise)
+
+  const results = await allSettled(promises)
   // iterate results, figure out who failed and who succeeded
 
-  return {
-    failures: [],
-    successes: [results]
+  const returnObj = {
+    failures: picker(results, 'rejected'),
+    successes: picker(results, 'fulfilled')
   }
+
+  console.log({returnObj, suc: returnObj.successes})
+
+  return returnObj
+}
+
+function picker(arr, status) {
+  return arr.filter(e => e.status === status).map(e => e.value ? e.value : e.reason)
 }
 
 module.exports = {

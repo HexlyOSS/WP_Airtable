@@ -15,7 +15,8 @@
     "dotenv": "^8.1.0",
     "express": "^4.17.1",
     "jest": "^24.9.0",
-    "middy": "^0.29.0"
+    "middy": "^0.29.0",
+    "promise.allsettled": "^1.0.1"
   },
   "devDependencies": {
     "aws-sdk": "^2.536.0",
