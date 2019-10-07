@@ -34,23 +34,7 @@ async function syncOrdersHandler(orderId) {
 
   if( orders.length < 1 ){
     console.warn('No action to take, as Woo provided no orders', orderId)
-  }else if(orderId) {
-    // const {
-    //   id,
-    //   billing,
-    //   metadata,
-    //   line_items,
-    //   status,
-    //   date_created,
-    //   total,
-    //   currency
-    // } = data[0]
-
-    // if (!billing) {
-    //   throw new Error('Could not determine billing for order ' + id)
-    // }
-    // const { first_name, last_name, email } = billing
-    // const name = `${first_name} ${last_name}`    
+  }else if(orderId) {  
     
     const records = await AirtableGetRecord(undefined, 'Orders', undefined, { wooId: orderId })
     
@@ -59,85 +43,17 @@ async function syncOrdersHandler(orderId) {
 
     const mRes = await mergeOrders(orders, records)
 
-    
-    // const { airtableId, airtableNumberOfMatches } = getMatchingRecords(
-    //   AirtableGetRecordRes,
-    //   id
-    // )
-
-
-
-    // const mRes = await mergeRecords(
-    //   orderId,
-    //   name,
-    //   metadata,
-    //   line_items,
-    //   email,
-    //   status,
-    //   date_created,
-    //   total,
-    //   currency,
-    //   airtableNumberOfMatches,
-    //   airtableId
-    // )
-
     airtablePostResult.push(mRes)
   } else {
     throw new Error('Unreachable code from orderId missing')
-    // const AirtableGetRecordRes = await AirtableGetRecord(undefined, 'Orders')
-    // console.log({ AirtableGetRecordRes })
-    // for (const order of data) {
-    //   const {
-    //     id,
-    //     billing,
-    //     metadata,
-    //     line_items,
-    //     status,
-    //     date_created,
-    //     total,
-    //     currency
-    //   } = order
-    //   if (!billing) {
-    //     return getWooOrdersRes
-    //   }
-    //   const { first_name, last_name, email } = billing
-    //   const name = `${first_name} ${last_name}`
-
-    //   const { airtableId, airtableNumberOfMatches } = getMatchingRecords(
-    //     AirtableGetRecordRes,
-    //     id
-    //   )
-
-    //   const mRes = await mergeRecords(
-    //     id,
-    //     name,
-    //     metadata,
-    //     line_items,
-    //     email,
-    //     status,
-    //     date_created,
-    //     total,
-    //     currency,
-    //     airtableNumberOfMatches,
-    //     airtableId
-    //   )
-
-    //   airtablePostResult.push(mRes)
-    // }
   }
 
   return airtablePostResult
-  // } catch (error) {
-  //   // console.error('Failed to sync orders?', error)
-  //   const e = new Error('Failed to sync orders: ' + error.message)
-  //   e.cause = error
-  //   throw e
-  // }
 }
 
 
 function parseOrderToRecord(order){
-  console.log({ order })
+  // console.log({ order })
   const { 
     id: wooOrderId, 
     billing = {},
@@ -154,12 +70,12 @@ function parseOrderToRecord(order){
 
   const data = {
     wooOrderId,
-    metadata,
+    metadata: JSON.stringify(metadata),
     name, 
     first_name, 
     last_name,
     email,
-    line_items,
+    line_items: JSON.stringify(line_items),
     status,
     date_created,
     total,
@@ -169,7 +85,7 @@ function parseOrderToRecord(order){
 }
 
 async function mergeOrders(orders, records) {
-  console.log({ function: 'mergeOrders()', orders, records })
+  // console.log({ function: 'mergeOrders()', orders, records })
 
     
   // find counts of orders
@@ -192,78 +108,27 @@ async function mergeOrders(orders, records) {
 
   const promises = orders.map( async order => {
     const data = parseOrderToRecord(order)
-    let [record] = mapping[order.id]
+    let [record] = mapping[order.id] ? mapping[order.id] : []
 
-    // console.log({ data, record })
+    if(record && record.fields.id) {
+      record.fields.id = undefined
+    }
 
     let result
     if( record ){
-      result = await AirtableUpdateRecord('Orders', { ...record.fields, ...data }, record.id)
+      result = AirtableUpdateRecord('Orders', { ...record.fields, ...data }, record.id)
     }else{
-      result = await AirtableCreateRecord('Orders', obj)
+      result = AirtableCreateRecord('Orders', { ...data })
     }
-    // console.log({result})
     return result
   })
-  const results = Promise.all(promises)
-  
+  const results = await Promise.all(promises)
   // iterate results, figure out who failed and who succeeded
 
   return {
     failures: [],
-    successes: []
+    successes: [results]
   }
-}
-
-async function mergeRecords(
-  id,
-  name,
-  metadata,
-  line_items,
-  email,
-  status,
-  date_created,
-  total,
-  currency,
-  airtableNumberOfMatches,
-  airtableId
-) {
-  let airtablePostResult
-  const obj = {
-    wooOrderId: id,
-    name,
-    meta_data: metadata,
-    line_items: JSON.stringify(line_items),
-    email,
-    status,
-    date_created,
-    total,
-    currency
-  }
-  console.log({
-    id,
-    name,
-    metadata,
-    line_items,
-    email,
-    status,
-    date_created,
-    total,
-    currency,
-    airtableNumberOfMatches,
-    airtableId
-  })
-  if (airtableNumberOfMatches === 0) {
-    console.log('Creating new record')
-    airtablePostResult = await AirtableCreateRecord('Orders', obj)
-  } else if (airtableNumberOfMatches === 1) {
-    console.log('Updating record')
-    airtablePostResult = await AirtableUpdateRecord('Orders', obj, airtableId)
-  } else {
-    throw new Error('More than one record found!')
-  }
-
-  return airtablePostResult
 }
 
 module.exports = {
