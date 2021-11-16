@@ -18,7 +18,7 @@
     "middy": "^0.29.0"
   },
   "devDependencies": {
-    "aws-sdk": "^2.536.0",
+    "aws-sdk": "^2.814.0",
     "serverless-offline": "^5.11.0",
     "serverless-offline-ssm": "^3.1.0"
   }
